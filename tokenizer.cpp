@@ -13,21 +13,41 @@ Tokenizer::Tokenizer(std::string fileName)
 
 void Tokenizer::clearWhiteSpaces()
 {
+  // while(!input.eof())
+  // {
+  //    if(isWhite(input.peek()))
+  //    {
+  //    char c = input.get();
+  //    }
+  //    input.seekg(2,std::ios::cur);
+  //    if(input.tellg() == -1)
+  //    {
+  //     break;
+  //    }
+     
+  // }
+
+  // input.clear();
+  // input.seekg(0,std::ios::beg);
     while(isWhite(input.peek()))
     {
-        input.get();
+        char c = input.get();
     }
+ // input.clear();
 }
 
 Token Tokenizer::getToken()
 {
-  clearWhiteSpaces();
-  if(!hasTokens())
-  {
-    return Token{NULL_TOKEN,""};
-  }
+  //clearWhiteSpaces();
+  // if(!hasTokens())
+  // {
+  //   std::cout<<"!!";
+  //   return Token{NULL_TOKEN,""};
+  // }
 
+    clearWhiteSpaces();
   char c = input.get();
+
   
   switch(c)
   {
@@ -37,16 +57,38 @@ Token Tokenizer::getToken()
     case ']' : return Token(SQUARE_CLOSE); break;
     case ':' : return Token(COLON); break;
     case ',' : return Token(COMMA); break;
-    case 'f' : input.seekg(4, std::ios::cur); return Token(BOOL,"false"); break;
-    case 't' : input.seekg(4, std::ios::cur); return Token(BOOL,"true");  break;
-    case 'n' : input.seekg(3,std::ios::cur); return Token(NULL_TOKEN); break;
-  }
+    case 'f' : 
+    for (size_t i = 0; i < 4; i++)
+    {
+      c = input.get();
+    }
+    return Token(BOOL,"false"); 
+    break; 
 
+
+    case 't' :
+    for (size_t i = 0; i < 3; i++)
+    {
+      c = input.get();
+    }      
+     return Token(BOOL,"true");
+     break;
+
+
+    case 'n' :
+    for (size_t i = 0; i < 3; i++)
+    {
+      c = input.get();
+    }    
+    return Token(NULL_TOKEN); break;
+  } 
+   
+   
   Token token;
   if(c == '"') // string 
   {
 
-    token.type = STRING;
+    token.type = TOKEN_TYPE::STRING;
     input.get(c);
     while(c!='"')
     {
@@ -56,13 +98,14 @@ Token Tokenizer::getToken()
 
   }
 
-  if(isNumber(c))
+  else if(isNumber(c))
   {
-    token.type = NUMBER;
-    while(isNumber(c) || c=='.')
+    token.type = TOKEN_TYPE::NUMBER;
+    token.val += c;
+    while(isNumber(input.peek()) || c=='.')
     {
+         input.get(c);
         token.val+=c;
-        input.get(c);
     }
    }
 
