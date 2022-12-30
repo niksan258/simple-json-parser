@@ -1,7 +1,7 @@
-{  
-    "employee": {  
-        "name":            123.4,   
-        "salary":         "hello",   
-        "married":    true  
-    }  
-}  
+{
+  "pokemon": {
+    "id": 1,
+    "num": "001",
+    "name": "Bulbasaur",
+    "img": "http://www.serebii.net/pokemongo/pokemon/001.png"
+}}
