@@ -10,10 +10,10 @@ using JSONObject = std::map<std::string,JSONValue*>;
 using JSONArray = std::vector<JSONValue*>;
 
 
-
 class JSONValue
 {
 private:
+
 enum ValueType
 {
     NULL_VALUE = -1,
@@ -23,6 +23,7 @@ enum ValueType
     NUMBER,
     BOOL,
 };
+
 ValueType type;
 
 JSONObject* object;
@@ -34,13 +35,44 @@ bool bool_val;
 
 
 public:
-JSONValue() {}
+JSONValue() {
+    object = nullptr;
+    array = nullptr;
+    str = "";
+    num = 0.00;
+    bool_val = false;
+}
+
+
+JSONValue& operator=(const JSONValue& other)
+{
+    if(this != &other)
+    {
+        //delete 
+
+        type = other.type;
+        object = other.object;
+        array = other.array;
+        str = other.str;
+        num = other.num;
+        bool_val = other.bool_val;
+
+    }
+    return *this;
+}
+
+
 JSONValue(ValueType t): type(t) {}
+
+ValueType getType() {return type;}
+JSONObject* getObject() {return object;}
+JSONArray* getArray() {return array;}
 
 void setArray(JSONArray* arr)
 {
-    type = ValueType::ARRAY;
-    this->array = arr;
+
+  type = ValueType::ARRAY;
+    array = arr;
 }
 
 void setObject(JSONObject* obj)
@@ -71,8 +103,68 @@ void setNull()
 
 
 
+void print(int indentation)
+{
+std::string spacing( indentation ,'\t');
 
-};
+
+  switch(type)
+  {
+    case ValueType::NUMBER : 
+    {
+        std::cout<< num;
+        break;
+    }
+
+    case ValueType::BOOL : 
+    {
+        bool_val == true ? std::cout<<"true" : std::cout<<"false";
+        break;
+    }
+    case ValueType::STRING : 
+    {
+        std::cout<< str;
+        break;
+    }
+    case ValueType::NULL_VALUE : 
+    {
+       std::cout<<"null";
+       break;
+    }
+    case ValueType::OBJECT : 
+    {
+
+        // iterate through map, cout { , cout key,,cout : and call print for each jsonValue
+        std::cout<< spacing <<"{\n";
+        for (auto i = object->begin(); i != object->end(); i++)
+        {
+            std::cout<<spacing<<i->first<<" : "; // prints the key
+            i->second->print( indentation ); // gets the jsonvalue from the map
+            std::cout<<',';
+        }
+        std::cout<< spacing <<"},\n";
+
+        break;
+    }
+    case ValueType::ARRAY : 
+    {
+        std::cout<< spacing <<"[\n";
+        //iterate through array and call print for each jsonValue
+        for (int i = 0; i < array->size(); i++)
+        {
+            (*array)[i]->print( indentation + 1);
+            std::cout<<"\n";
+                    }
+        std::cout<< spacing <<']';
+
+        break;
+    }
+  }
+}
+
+//print json tree recursively
+
+ };
 
 
 

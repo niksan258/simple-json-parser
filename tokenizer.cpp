@@ -13,39 +13,21 @@ Tokenizer::Tokenizer(std::string fileName)
 
 void Tokenizer::clearWhiteSpaces()
 {
-  // while(!input.eof())
-  // {
-  //    if(isWhite(input.peek()))
-  //    {
-  //    char c = input.get();
-  //    }
-  //    input.seekg(2,std::ios::cur);
-  //    if(input.tellg() == -1)
-  //    {
-  //     break;
-  //    }
-     
-  // }
-
-  // input.clear();
-  // input.seekg(0,std::ios::beg);
     while(isWhite(input.peek()))
     {
         char c = input.get();
     }
- // input.clear();
 }
 
 Token Tokenizer::getToken()
 {
-  //clearWhiteSpaces();
-  // if(!hasTokens())
-  // {
-  //   std::cout<<"!!";
-  //   return Token{NULL_TOKEN,""};
-  // }
 
-    clearWhiteSpaces();
+  if(!hasTokens())
+  {
+   throw std::out_of_range("No tokens!");
+  }
+
+  clearWhiteSpaces();
   char c = input.get();
 
   
@@ -57,30 +39,15 @@ Token Tokenizer::getToken()
     case ']' : return Token(SQUARE_CLOSE); break;
     case ':' : return Token(COLON); break;
     case ',' : return Token(COMMA); break;
-    case 'f' : 
-    for (size_t i = 0; i < 4; i++)
-    {
-      c = input.get();
-    }
-    return Token(BOOL,"false"); 
-    break; 
 
+    case 'f' : move_cursor(input,4); 
+    return Token(BOOL,"false"); break; 
 
-    case 't' :
-    for (size_t i = 0; i < 3; i++)
-    {
-      c = input.get();
-    }      
-     return Token(BOOL,"true");
-     break;
+    case 't' : move_cursor(input,3);
+    return Token(BOOL,"true"); break;
 
-
-    case 'n' :
-    for (size_t i = 0; i < 3; i++)
-    {
-      c = input.get();
-    }    
-    return Token(NULL_TOKEN); break;
+    case 'n' : move_cursor(input,3);
+    return Token(NULL_VALUE); break;
   } 
    
    
@@ -102,7 +69,7 @@ Token Tokenizer::getToken()
   {
     token.type = TOKEN_TYPE::NUMBER;
     token.val += c;
-    while(isNumber(input.peek()) || c=='.')
+    while(isNumber(input.peek()) || input.peek() == '.')
     {
          input.get(c);
         token.val+=c;

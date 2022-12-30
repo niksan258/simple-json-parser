@@ -17,6 +17,34 @@ bool isNumber(char c)
     return ((c >= '0') && (c <= '9')) || c == '-';
 }
 
+void move_cursor(std::fstream& input,int n)
+{
+   for (size_t i = 0; i < n; i++)
+   {
+    input.get();
+   } 
+}
+
+std::vector<std::string> tokenizeString(std::string input)
+{
+
+    char* input_chars = new char[input.length() + 1];
+    strcpy(input_chars,input.c_str());
+    const char* delimiter = "/";
+
+    std::vector<std::string> tokenizedString;
+ 
+    char* token = strtok(input_chars,delimiter);
+
+    while(token != nullptr)
+    {
+       tokenizedString.push_back(token);
+       token = strtok(nullptr,delimiter);
+    }
+
+  return tokenizedString;
+}
+
 enum TOKEN_TYPE
 {
     NULL_TOKEN = -1,
@@ -75,7 +103,7 @@ struct Token
         }
         case 6:
         {
-            return "String: "+val;
+            return val;
         } 
         case 7:
         {
@@ -85,6 +113,10 @@ struct Token
         {
             return "Boolean: " + val;
         }    
+        case 9:
+        {
+             return "Null value";
+        }
         default: return "INVALID";
     }
     }
