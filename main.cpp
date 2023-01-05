@@ -37,13 +37,21 @@ int main()
 
   //  std::vector<JSONValue*> result;
 
-    //(p.replace("pokemon/id/","2"))->print(0);
+    p.replaceJSON("pokemon/candy_count","[true,false]");
 
-     JSONValue* result = new JSONValue();
+    p.getroot()->print(std::cout,0);
+ //   p.createObject("","6868");
+
+  //   JSONValue* result = new JSONValue();
    //  p.replace("pokemon/",0)->print(0);
      
+ //  p.getroot()->print(std::cout,0);
+ p.save("output.json");
 
-      p.replace("pokemon/img","2")->print(0);
+
+    //  p.replace("pokemon","{}")->print(0);
+
+      //quiz/maths/q1/options/3
 
 
 

@@ -8,109 +8,194 @@
 class Parser
 {
 private:
-  std::fstream input;
+  std::ifstream input;
   JSONValue *root{};
   Tokenizer t;
   Token token;
 
 public:
   Parser(std::string fileName) : t(fileName) {}
-   
-  JSONValue* getroot() {return root;}
 
-  JSONValue* replace(std::string path,std::string key)
+  JSONValue *getroot() { return root; }
+
+
+
+  void save(const std::string &fileName)
   {
-    std::vector<std::string> pathTokens
-                = tokenizeString(path);
+    std::ofstream output(fileName);
+    if (!output.is_open())
+    {
+      throw std::runtime_error("File for writing couldn't be opened");
+    }
 
-    JSONValue* result = new JSONValue;
+    root->print(output, 0);
 
+    output.close();
 
-    findElemWithPath(root,key,pathTokens,0,result);
-    return result;
-    //make function that checks map for 
-    //current path and if it find continues
+    std::cout << "File saved.";
   }
 
-  void findElemWithPath(JSONValue* currRoot,std::string name,std::vector<std::string> tokens,int counter,JSONValue*& result)
+
+
+
+  void createObject(std::string path, std::string value)
   {
-    if(root->getType() == 0)
+
+    std::vector<std::string> pathTokens = tokenizeString(path);
+
+    JSONObject *map = new JSONObject;
+
+    std::ofstream out("tempValue.json");
+    out << value;
+    out.close();
+
+    Parser valueParser("tempValue.json");
+    valueParser.parse();
+
+
+    std::string objectKey = pathTokens[pathTokens.size() - 1]; // gets last element from path
+
+    if(pathTokens.size() == 1)
     {
-      JSONObject* map = currRoot->getObject();
+    (*root->getObject())[objectKey] = valueParser.getroot();
+    } 
+    else 
+    {
+      findElemWithPath(root, pathTokens, 0, map);
+      if(map->count(objectKey)==1)  throw std::runtime_error("Object already exists");
+      (*map)[objectKey] = valueParser.getroot();
+    }
+
+  }
+
+
+
+  void replaceJSON(std::string path, std::string value)
+  {
+    std::vector<std::string> pathTokens = tokenizeString(path);
+
+    JSONObject *map = new JSONObject;
+
+
+    findElemWithPath(root, pathTokens, 0, map);
+
+    std::ofstream out("tempValue.json");
+    out << value;
+    out.close();
+
+    Parser valueParser("tempValue.json");
+    valueParser.parse();
+
+
+    std::string objectKey = pathTokens[pathTokens.size() - 1]; // gets last element from path
+    if(map->count(objectKey)==0)  throw std::runtime_error("Object not found");
+    
+    JSONValue* result = map->at(objectKey); // gets wanted element from tha map
+
+    JSONValue *newValue = valueParser.getroot();
+    switch (newValue->getType())
+    {
+    case -1:
+      result->setNull();
+      break;
+    case 0:
+      result->setObject(newValue->getObject());
+      break;
+    case 1:
+      result->setArray(newValue->getArray());
+      break;
+    case 2:
+      result->setStr(newValue->getStr());
+      break;
+    case 3:
+      result->SetNumber(newValue->getNumber());
+      break;
+    case 4:
+      result->setBool(newValue->getBool());
+      break;
+    }
+  }
+
+
+
+  void findElemWithPath(JSONValue *currRoot, std::vector<std::string> tokens, int counter, JSONObject *&result)
+  {
+    if (root->getType() == 0) // object
+    {
+      JSONObject *map = currRoot->getObject();
       bool found = false;
-      
+
       for (auto i = map->begin(); i != map->end(); i++)
       {
-        if((*i).first == tokens[counter])
+        //if(counter <= tokens.size() -1 )
+
+        if ((*i).first == tokens[counter])
         {
-          found = true;
-          if(counter == tokens.size() - 1)
+          if(tokens.size() == 1) 
           {
-            result = i->second;
+            result = map;
             return;
           }
-           findElemWithPath((*i).second,name,tokens,counter + 1,result);
+
+          found = true;
+          if (counter == tokens.size() - 2) // < bcs case with 1 element crashes
+          {
+            //result = i->second;
+            result = (*i).second->getObject();
+            return;
+          }
+          findElemWithPath((*i).second, tokens, counter + 1, result);
         }
       }
 
-      if(found == false)
+      if (found == false)
       {
         throw std::out_of_range("Invalid path");
       }
-      
-      
     }
+  }
 
- }
+  // replace function with given path and key
 
-  //replace function with given path and key
-
-
-// find elements with given key in the json tree
-  std::vector<JSONValue*> find(std::string key)
+  // find elements with given key in the json tree
+  std::vector<JSONValue *> find(std::string key)
   {
-    std::vector<JSONValue*> result;
-    find_helper(root,key,result);
+    std::vector<JSONValue *> result;
+    find_helper(root, key, result);
     return result;
   }
 
-//find helper function
-  void find_helper(JSONValue* root,std::string key,std::vector<JSONValue*>& result)
+  // find helper function
+  void find_helper(JSONValue *root, std::string key, std::vector<JSONValue *> &result)
   {
-    if((*root).getType() == 0)
+    if ((*root).getType() == 0)
 
     {
-    JSONObject* map = (*root).getObject();
-    for (auto i = (*map).begin(); i != (*map).end(); i++)
-    {
-      if((*i).first == key)
+      JSONObject *map = (*root).getObject();
+      for (auto i = (*map).begin(); i != (*map).end(); i++)
       {
-        result.push_back((*i).second);
-      } else {
-        find_helper((*i).second,key,result);
+        if ((*i).first == key)
+        {
+          result.push_back((*i).second);
+        }
+        else
+        {
+          find_helper((*i).second, key, result);
+        }
       }
     }
-    }
 
-    if((*root).getType() == 1)
+    if ((*root).getType() == 1)
     {
-      JSONArray* arr = (*root).getArray();
+      JSONArray *arr = (*root).getArray();
       for (auto i = (*arr).begin(); i != (*arr).end(); i++)
       {
-        find_helper((*i),key,result);
+        find_helper((*i), key, result);
       }
     }
 
-
     return;
-
   }
-
-
-
-
-
-
 
   void parse()
   {
@@ -165,6 +250,7 @@ public:
         root = parsedValue;
       }
     }
+    input.close();
   }
 
   // todo add parsers for object and array
@@ -192,25 +278,31 @@ public:
       switch (token.type)
       {
       case CURLY_OPEN:
+        // map->push_back(std::make_pair(key,parseObject()));
         (*map)[key] = parseObject(); // insert element in map
         /* code */
         break;
       case STRING:
+        // map->push_back(std::make_pair(key,parseString()))
         (*map)[key] = parseString();
         /* code */
         break;
       case SQUARE_OPEN:
+        // map->push_back(std::make_pair(key,parseArray()));
         (*map)[key] = parseArray();
         /* code */
         break;
       case NUMBER:
+        // map->push_back(std::make_pair(key,parseNum()));
         (*map)[key] = parseNum();
         /* code */
         break;
       case BOOL:
+        // map->push_back(std::make_pair(key,parseBool()));
         (*map)[key] = parseBool();
         break;
       case NULL_VALUE:
+        // map->push_back(std::make_pair(key,parseNullVal()));
         (*map)[key] = parseNullVal();
 
         break;
@@ -227,7 +319,7 @@ public:
     }
 
     node->setObject(map);
- //   std::cout << map->size();
+    //   std::cout << map->size();
     return node;
   }
 
@@ -267,7 +359,6 @@ public:
       case NULL_VALUE:
         node = parseNullVal();
         break;
-
       }
 
       token = t.getToken();
@@ -277,13 +368,10 @@ public:
         complete = true;
       }
       (*arr).push_back(node);
-
     }
 
-
-  JSONValue* result = new JSONValue;
-  result->setArray(arr);
-
+    JSONValue *result = new JSONValue;
+    result->setArray(arr);
 
     return result;
   }

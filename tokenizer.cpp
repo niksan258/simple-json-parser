@@ -9,7 +9,11 @@ Tokenizer::Tokenizer(std::string fileName)
     {
       throw std::runtime_error("File couldn't be opened.");
     }
+
+    //
 }
+
+
 
 void Tokenizer::clearWhiteSpaces()
 {
@@ -75,6 +79,8 @@ Token Tokenizer::getToken()
         token.val+=c;
     }
    }
+
+   
 
   return token;
 }                          

@@ -4,6 +4,8 @@
 #include <fstream>
 #include <vector>
 #include <map>
+#include <list>
+#include <unordered_map>
 
 
 
@@ -103,7 +105,7 @@ struct Token
         }
         case 6:
         {
-            return val;
+            return "String: " + val;
         } 
         case 7:
         {

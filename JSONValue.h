@@ -5,8 +5,10 @@
 
 
 
+
 class JSONValue;
-using JSONObject = std::map<std::string,JSONValue*>;
+using JSONObject = std::map<std::string,    JSONValue*>;
+//using JSONObject = std::map<std::string,JSONValue*>;
 using JSONArray = std::vector<JSONValue*>;
 
 
@@ -40,26 +42,31 @@ JSONValue() {
     array = nullptr;
     str = "";
     num = 0.00;
-    bool_val = false;
+    bool_val = 0;
 }
 
 
-JSONValue& operator=(const JSONValue& other)
-{
-    if(this != &other)
-    {
-        //delete 
+// JSONValue& operator=(const JSONValue& other)
+// {
+//     if(this != &other)
+//     {
+//         this->type = NULL_VALUE;
+//         delete this->object;
+//         delete this->array;
 
-        type = other.type;
-        object = other.object;
-        array = other.array;
-        str = other.str;
-        num = other.num;
-        bool_val = other.bool_val;
+//         std::cout<<this->num;
+    
 
-    }
-    return *this;
-}
+//         this->type = other.type;
+//         object = other.object;
+//         array = other.array;
+//         str = other.str;
+//         this->num = other.num;
+//         bool_val = other.bool_val;
+
+//     }
+//     return *this;
+// }
 
 
 JSONValue(ValueType t): type(t) {}
@@ -67,6 +74,9 @@ JSONValue(ValueType t): type(t) {}
 ValueType getType() {return type;}
 JSONObject* getObject() {return object;}
 JSONArray* getArray() {return array;}
+std::string getStr() {return str;}
+float getNumber() {return num;}
+bool getBool() {return bool_val;}
 
 void setArray(JSONArray* arr)
 {
@@ -103,7 +113,7 @@ void setNull()
 
 
 
-void print(int indentation)
+void print(std::ostream& output, int indentation)
 {
 std::string spacing( indentation ,'\t');
 
@@ -112,59 +122,80 @@ std::string spacing( indentation ,'\t');
   {
     case ValueType::NUMBER : 
     {
-        std::cout<< num;
+        output << num;  
         break;
     }
 
     case ValueType::BOOL : 
     {
-        bool_val == true ? std::cout<<"true" : std::cout<<"false";
+        bool_val == true ? output<<spacing<<"true" : output<<spacing<<"false";
         break;
     }
     case ValueType::STRING : 
     {
-        std::cout<< str;
+        output<< spacing <<'"'<< str << '"';
         break;
     }
     case ValueType::NULL_VALUE : 
     {
-       std::cout<<"null";
+       output<< spacing <<"null";
        break;
     }
     case ValueType::OBJECT : 
     {
 
+       unsigned int counter = 1;
         // iterate through map, cout { , cout key,,cout : and call print for each jsonValue
-        std::cout<< spacing <<"{\n";
+        output<< spacing <<"{\n";
+
         for (auto i = object->begin(); i != object->end(); i++)
         {
-            std::cout<<spacing<<i->first<<" : "; // prints the key
-            i->second->print( indentation ); // gets the jsonvalue from the map
-            std::cout<<',';
+            output<<spacing<< '"' << i->first<< '"' <<" : "; // prints the key
+            i->second->print(output, indentation); // gets the jsonvalue from the map
+            
+           if(counter > object->size() -1 )
+           {
+            output<<'\n';
+           } else 
+           {
+            output<<",\n";
+           }
+
+           counter++;
         }
-        std::cout<< spacing <<"},\n";
+        output<< spacing <<"}";
 
         break;
     }
     case ValueType::ARRAY : 
     {
-        std::cout<< spacing <<"[\n";
+        unsigned int counter = 1;
+
+        output<< spacing <<"[\n";
         //iterate through array and call print for each jsonValue
         for (int i = 0; i < array->size(); i++)
         {
-            (*array)[i]->print( indentation + 1);
-            std::cout<<"\n";
+            (*array)[i]->print(output, indentation + 1);
+           if(counter > array->size() -1 )
+           {
+            output<<'\n';
+           } else 
+           {
+            output<< spacing <<",\n";
+           }
+
+           counter++;
                     }
-        std::cout<< spacing <<']';
+        output<< spacing <<']';
 
         break;
     }
   }
 }
 
-//print json tree recursively
 
  };
+
 
 
 
